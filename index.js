@@ -18,6 +18,7 @@ module.exports = function imageResizer(_options) {
     crop        : false,
     gravity     : "Center",
     quality     : 1,
+    compress    : null,
     noProfile   : false,
     sharpen     : false,
     imageMagick : false,
@@ -25,7 +26,11 @@ module.exports = function imageResizer(_options) {
     flatten     : false,
     interlace   : false,
     percentage  : null,
-    cover       : false
+    cover       : false,
+    extent      : false,
+    density     : [72, 72],
+    resample    : false,
+    colorspace  : "rgb"
   });
 
   return gm(function(gmfile, done) {
@@ -80,6 +85,11 @@ module.exports = function imageResizer(_options) {
           } else if (options.cover) {
             gmfile = gmfile
               .resize(options.width, options.height, "^");
+          } else if (options.extent) {
+            gmfile = gmfile
+              .resize(options.width, options.height, "")
+              //.gravity(options.gravity)
+              //.extent(options.width, ((options.height * 2) + 2), "");
           } else {
             gmfile = gmfile
               .resize(options.width, options.height);
@@ -95,7 +105,9 @@ module.exports = function imageResizer(_options) {
             .setFormat(options.format);
         }
 
-        if (options.quality !== 1) {
+        if (options.compress != null) {
+          gmfile = gmfile.compress(options.compress);
+        } else if (options.quality !== 1) {
           gmfile = gmfile.quality(Math.floor(options.quality * 100));
         }
 
@@ -124,6 +136,21 @@ module.exports = function imageResizer(_options) {
 
         if (options.noProfile) {
           gmfile = gmfile.noProfile();
+        }
+
+        if (options.density) {
+          gmfile = gmfile
+            .density(options.density[0], options.density[1]);
+        }
+
+        if (options.resample) {
+          gmfile = gmfile
+            .resample(options.resample[0], options.resample[1]);
+        }
+
+        if (options.colorspace) {
+          gmfile = gmfile
+            .colorspace(options.colorspace);
         }
 
         callback(null, gmfile);
